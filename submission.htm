@@ -1,0 +1,641 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- Created from PDF via Acrobat SaveAsXML -->
+<!-- Mapping table version: 28-February-2003 -->
+<HTML>
+<HEAD>
+<META
+ name="dc.creator"
+ content="gabriel" >
+<META
+ name="dc.date"
+ content="2014-09-21T14:43:10-04:00" >
+<META
+ name="dc.date.modified"
+ content="2014-09-21T14:43:10-04:00" >
+<META
+ name="generator"
+ content="Adobe Acrobat Exchange-Pro 7.256" >
+</HEAD>
+<BODY bgcolor=white text=black link=blue vlink=purple alink=fushia >
+<DIV class="Part" 
+
+><P 
+
+><FONT size="+1" color="#000000"><B>Summary </P
+><P 
+
+></B>The project is a classification problem and one of the best methods in machine learning is Random Forest.  That is why I choose this method.  Cross validation was included through the function &ldquo;trainControl(method = &quot;cv&quot;, number = 4)&rdquo;.  I printed out most of the information from the simulations to learn more about the processes. </P
+><IMG width="623" height="265"
+ src="images/submission_img_0.jpg" ><IMG width="623" height="251"
+ src="images/submission_img_1.jpg" ><P 
+
+> </P
+><P 
+
+>The overall logic of the program is as follows: </P
+><DL 
+
+><DD 
+
+>&#61623; read the training and testing data from the files given </DD
+><DD 
+
+>&#61623; delete the columns that are empty, NA, or otherwise useless </DD
+><DD 
+
+>&#61623; create new training and testing files </DD
+><DD 
+
+>&#61623; check out the data by plotting pairs of variables.  Two examples are shown in Fig.1 and 2.  There are some clustering and dependence on the outcome but the relationships are complex </DD
+><DD 
+
+>&#61623; to check expected out of sample error, divide the training data into sub-training and testing by a commonly used ratio 60% to 40% </DD
+><DD 
+
+>&#61623; train the data and predict. The results reveal the needed error as </DD
+></DL
+><P 
+
+>error=1-accuracy=1-(sum(correctly guessed testing data)/total number of testing data) </P
+><DL 
+
+><DD 
+
+>&#61623; look at the variable importance (for general purposes) </DD
+><DD 
+
+>&#61623; rerun the training on the whole training data set (the more data the better the prediction) </DD
+><DD 
+
+>&#61623; make prediction on whole original test data and save the results of testing </DD
+></DL
+><P 
+
+><FONT color="#00AF50"> </P
+><P 
+
+><FONT color="#000000"><B>  </P
+><P 
+
+>Code and outputs </P
+><P 
+
+><FONT color="#00AF50"></B>##Loading original training data </P
+><P 
+
+><FONT color="#000000">data_train&lt;-read.csv(&quot;pml-training.csv&quot;) </P
+><P 
+
+> </P
+><P 
+
+><FONT color="#00AF50">##Loading original testing data </P
+><P 
+
+><FONT color="#000000">data_test&lt;-read.csv(&quot;pml-testing.csv&quot;) </P
+><P 
+
+> </P
+><P 
+
+><FONT color="#00AF50">## deleting unnecessary columns manually </P
+><P 
+
+><FONT color="#000000">dcol&lt;-c(1, 3,5,12:36,50:59,69:83,87:101,103:112,125:139,141:150) </P
+><P 
+
+> </P
+><P 
+
+>training&lt;-data_train[,-dcol] </P
+><P 
+
+>testing&lt;-data_test[,-dcol] </P
+><P 
+
+> </P
+><P 
+
+><FONT color="#00AF50">## testing by plotting </P
+><P 
+
+><FONT color="#000000">plot(training$roll_belt,training$pitch_forearm,col=training$classe) </P
+><P 
+
+><FONT color="#C00000">Figs. 1 </P
+><P 
+
+> </P
+><P 
+
+><FONT color="#000000"> </P
+><P 
+
+> </P
+><P 
+
+> </P
+><P 
+
+> </P
+><P 
+
+> </P
+><P 
+
+>plot(training$roll_forearm,training$pitch_forearm,col=training$classe) </P
+><P 
+
+><FONT color="#C00000">Figs. 2 </P
+><P 
+
+><FONT color="#000000"> </P
+><P 
+
+><FONT color="#C00000">There are clusters and division by &ldquo;classe&rdquo; as seen from Figs. 1 and 2 </P
+><P 
+
+><FONT color="#000000"> </P
+><P 
+
+><FONT color="#00AF50">##  ----------------Out of sample error estimate---------------- </P
+><P 
+
+><FONT color="#000000">datSet&lt;-training </P
+><P 
+
+> </P
+><P 
+
+><FONT color="#00AF50">## -----------------Trial RF training--------------------------- </P
+><P 
+
+><FONT color="#000000">library(caret) </P
+><P 
+
+> </P
+><P 
+
+><FONT color="#00AF50">## Breaking the original test file into training (train0) and testing (tes0) parts </P
+><P 
+
+><FONT color="#000000">inTrain0 &lt;- createDataPartition(y=datSet$classe,p=0.6, list=FALSE) </P
+><P 
+
+>train0 &lt;- datSet[inTrain0,] </P
+><P 
+
+>test0 &lt;- datSet[-inTrain0,] </P
+><P 
+
+> </P
+><P 
+
+><FONT color="#00AF50">## determining number of cross validation option      </P
+><P 
+
+><FONT color="#000000">trControl &lt;- trainControl(method = &quot;cv&quot;, number = 4) ## number of cross validations </P
+><P 
+
+> </P
+><P 
+
+><FONT color="#00AF50">## Training the data on the subset  </P
+><P 
+
+><FONT color="#000000">modFit0 &lt;- train(train0$classe~ .,data=train0, method=&quot;rf&quot;, trControl = trControl) </P
+><P 
+
+> </P
+><P 
+
+> </P
+><P 
+
+><FONT color="#00AF50">## Displaying results of training  </P
+><P 
+
+><FONT color="#000000">modFit0 </P
+><P 
+
+><FONT size="+1">Random Forest  </P
+><P 
+
+> </P
+><P 
+
+>11776 samples </P
+><P 
+
+>   56 predictor </P
+><P 
+
+>    5 classes: 'A', 'B', 'C', 'D', 'E'  </P
+><P 
+
+> </P
+><P 
+
+>No pre-processing </P
+><P 
+
+>Resampling: Cross-Validated (4 fold)  </P
+><P 
+
+> </P
+><P 
+
+>Summary of sample sizes: 8833, 8832, 8831, 8832  </P
+><P 
+
+> </P
+><P 
+
+>Resampling results across tuning parameters: </P
+><P 
+
+> </P
+><P 
+
+>  mtry  Accuracy  Kappa  Accuracy SD  Kappa SD </P
+><P 
+
+>   2    0.991     0.989  0.00198      0.00251  </P
+><P 
+
+>  31    0.996     0.994  0.00141      0.00179  </P
+><P 
+
+>  60    0.991     0.989  0.00442      0.00559  </P
+><P 
+
+> </P
+><P 
+
+>Accuracy was used to select the optimal model using  the largest value. </P
+><P 
+
+>The final value used for the model was mtry = 31. </P
+><P 
+
+><FONT size="+1"> </P
+><P 
+
+>summary(modFit0)  </P
+><P 
+
+><FONT size="+1">Length Class      Mode      </P
+><P 
+
+>call                4  -none-     call      </P
+><P 
+
+>type                1  -none-     character </P
+><P 
+
+>predicted       11776  factor     numeric   </P
+><P 
+
+>err.rate         3000  -none-     numeric   </P
+><P 
+
+>confusion          30  -none-     numeric   </P
+><P 
+
+>votes           58880  matrix     numeric   </P
+><P 
+
+>oob.times       11776  -none-     numeric   </P
+><P 
+
+>classes             5  -none-     character </P
+><P 
+
+>importance         60  -none-     numeric   </P
+><P 
+
+>importanceSD        0  -none-     NULL      </P
+><P 
+
+>localImportance     0  -none-     NULL      </P
+><P 
+
+>proximity           0  -none-     NULL      </P
+><P 
+
+>ntree               1  -none-     numeric   </P
+><P 
+
+>mtry                1  -none-     numeric   </P
+><P 
+
+>forest             14  -none-     list      </P
+><P 
+
+>y               11776  factor     numeric   </P
+><P 
+
+>test                0  -none-     NULL      </P
+><P 
+
+>inbag               0  -none-     NULL      </P
+><P 
+
+>xNames             60  -none-     character </P
+><P 
+
+>problemType         1  -none-     character </P
+><P 
+
+>tuneValue           1  data.frame list      </P
+><P 
+
+>obsLevels           5  -none-     character </P
+><P 
+
+><FONT size="+1"> </P
+><P 
+
+>modFit0$finalModel </P
+><P 
+
+><FONT size="+1">Call: </P
+><P 
+
+> randomForest(x = x, y = y, mtry = param$mtry)  </P
+><P 
+
+>               Type of random forest: classification </P
+><P 
+
+>                     Number of trees: 500 </P
+><P 
+
+>No. of variables tried at each split: 31 </P
+><P 
+
+> </P
+><P 
+
+>        OOB estimate of  error rate: 0.32% </P
+><P 
+
+>Confusion matrix: </P
+><P 
+
+>     A    B    C    D    E  class.error </P
+><P 
+
+>A 3346    1    0    0    1 0.0005973716 </P
+><P 
+
+>B    9 2267    2    1    0 0.0052654673 </P
+><P 
+
+>C    0    5 2046    3    0 0.0038948393 </P
+><P 
+
+>D    0    0   11 1919    0 0.0056994819 </P
+><P 
+
+>E    0    1    0    4 2160 0.0023094688 </P
+><P 
+
+> </P
+><P 
+
+><FONT size="+1" color="#00AF50"> </P
+><P 
+
+>## Random forest variable importance </P
+><P 
+
+><FONT color="#000000">varImp(modFit0)  </P
+><P 
+
+><FONT size="+1">rf variable importance </P
+><P 
+
+> </P
+><P 
+
+>  only 20 most important variables shown (out of 60) </P
+><P 
+
+> </P
+><P 
+
+>                     Overall </P
+><P 
+
+>num_window           100.000 </P
+><P 
+
+>roll_belt             65.525 </P
+><P 
+
+>pitch_forearm         40.602 </P
+><P 
+
+>yaw_belt              31.655 </P
+><P 
+
+>magnet_dumbbell_y     30.975 </P
+><P 
+
+>magnet_dumbbell_z     29.967 </P
+><P 
+
+>pitch_belt            27.380 </P
+><P 
+
+>roll_forearm          23.292 </P
+><P 
+
+>accel_dumbbell_y      13.455 </P
+><P 
+
+>accel_forearm_x       11.696 </P
+><P 
+
+>magnet_dumbbell_x     11.511 </P
+><P 
+
+>roll_dumbbell         10.834 </P
+><P 
+
+>accel_belt_z           9.892 </P
+><P 
+
+>total_accel_dumbbell   9.046 </P
+><P 
+
+>accel_dumbbell_z       8.878 </P
+><P 
+
+>magnet_belt_y          8.063 </P
+><P 
+
+>magnet_forearm_z       7.749 </P
+><P 
+
+>magnet_belt_z          7.593 </P
+><P 
+
+>magnet_belt_x          6.457 </P
+><P 
+
+>gyros_belt_z           6.175 </P
+><P 
+
+><FONT size="+1"> </P
+><P 
+
+> </P
+><P 
+
+><FONT color="#00AF50">##  Checking predictions on test0 for out of sample error </P
+><P 
+
+><FONT color="#000000">pred0&lt;-predict(modFit0,test0);  </P
+><P 
+
+>summary(pred0)  </P
+><P 
+
+><FONT size="+1">   A    B    C    D    E  </P
+><P 
+
+>2243 1506 1375 1279 1443  </P
+><P 
+
+><FONT size="+1"> </P
+><P 
+
+>table(pred0,test0$classe) </P
+><P 
+
+><FONT size="+1">pred0    A    B    C    D    E </P
+><P 
+
+>    A 2232   11    0    0    0 </P
+><P 
+
+>    B    0 1504    2    0    0 </P
+><P 
+
+>    C    0    3 1366    6    0 </P
+><P 
+
+>    D    0    0    0 1279    0 </P
+><P 
+
+>    E    0    0    0    1 1442 </P
+><P 
+
+><FONT size="+1"> </P
+><P 
+
+><FONT color="#00AF50">## Out of sample error estimate   </P
+><P 
+
+><FONT color="#000000">out_error &lt;- 1 -  sum(pred0 == test0$classe)/length(pred0) </P
+><P 
+
+>out_error*100 <FONT color="#00AF50">##in % </P
+><P 
+
+><FONT size="+1" color="#000000">[1] 0.293143 </P
+><P 
+
+><FONT size="+1"> </P
+><P 
+
+><FONT color="#00AF50">## Final random forest on full training data set </P
+><P 
+
+><FONT color="#000000">modFit&lt;- train(training $classe~ .,data=training, method=&quot;rf&quot;, trControl = trControl) </P
+><P 
+
+>modFit </P
+><P 
+
+><FONT size="+1">Random Forest  </P
+><P 
+
+> </P
+><P 
+
+>19622 samples </P
+><P 
+
+>   56 predictor </P
+><P 
+
+>    5 classes: 'A', 'B', 'C', 'D', 'E'  </P
+><P 
+
+> </P
+><P 
+
+>No pre-processing </P
+><P 
+
+>Resampling: Cross-Validated (4 fold)  </P
+><P 
+
+> </P
+><P 
+
+>Summary of sample sizes: 14715, 14717, 14716, 14718  </P
+><P 
+
+> </P
+><P 
+
+>Resampling results across tuning parameters: </P
+><P 
+
+> </P
+><P 
+
+>  mtry  Accuracy  Kappa  Accuracy SD  Kappa SD </P
+><P 
+
+>   2    0.995     0.994  0.001304     0.001650 </P
+><P 
+
+>  31    0.998     0.998  0.000645     0.000816 </P
+><P 
+
+>  60    0.996     0.995  0.001342     0.001698 </P
+><P 
+
+> </P
+><P 
+
+>Accuracy was used to select the optimal model using  the largest value. </P
+><P 
+
+>The final value used for the model was mtry = 31.  </P
+><P 
+
+><FONT size="+1"> </P
+><P 
+
+>pred &lt;- predict(modFit, testing) </P
+><P 
+
+>pred </P
+><P 
+
+><FONT size="+1">[1] B A B A A E D B A A B C B A E E A B B B </P
+><P 
+
+>Levels: A B C D E </P
+><P 
+
+><FONT size="+1"> </P
+></DIV
+></BODY>
+</HTML>
